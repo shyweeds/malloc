@@ -3,3 +3,6 @@
 /malloclab-handout/fsecs.o
 /malloclab-handout/ftimer.o
 /malloclab-handout/memlib.o
+/malloclab-handout/mm.o
+/malloclab-handout/mdriver
+/malloclab-handout/mdriver.o
