@@ -53,6 +53,14 @@ team_t team = {
 /*Read the size and allocated fields from address p*/
 #define GET_SIZE(p)         (GET(p) & ~0x07)
 #define GET_ALLOC(p)        (GET(p) &  0x01)
+
+/*Given block ptr bp, compute address of its header and footer*/
+#define HDRP(bp)            ((char *)(bp) - WSIZE)
+#define FTRP(bp)            ((char *)(bp) + GET_SIZE(HDRP(bp)) - DSIZE)
+
+/*Given block ptr bp, compute address of next and previous blocks*/
+#define NEXT_BLKP(bp)       ((char *)(bp) + GETSIZE(((char *)(bp) - WSIZE)))
+#define PREV_BLKP(bp)       ((char *)(bp) - GETSIZE(((char *)(bp) - DSIZE)))
 /***shyweeds' edit***********************/
 
 /* single word (4) or double word (8) alignment */
