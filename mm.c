@@ -9,6 +9,7 @@
  * NOTE TO STUDENTS: Replace this header comment with your own header
  * comment that gives a high level description of your solution.
  */
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -75,9 +76,27 @@ team_t team = {
 /* 
  * mm_init - initialize the malloc package.
  */
+static void *extend_heap(size_t words);
+unsigned int * heap_listp;
 int mm_init(void)
 {
-    return 0;
+  /*create the initial empty heap*/
+  if ((heap_listp = mem_sbrk(4*WSIZE)) == (void *) -1)
+    return -1;  
+  PUT(heap_listp, 0); /* alignment padding */
+  PUT(heap_listp + (1*WSIZE), PACK(DSIZE, 1)); /*Prologue header*/
+  PUT(heap_listp + (2*WSIZE), PACK(DSIZE, 1)); /*Prologue footer*/
+  PUT(heap_listp + (3*WSIZE), PACK(0, 1)); /*Epilogue footer*/
+  heap_listp += (2*WSIZE);
+
+  /*Extend the empty heap with a free block of CHUNKSIZE bytes*/
+  if(extend_heap(CHUNKSIZE/WSIZE) == NULL)
+    return -1;
+  return 0;
+}
+/* extend_heap: extend the given heap*/
+static void *extend_heap(size_t words){
+  return NULL;
 }
 
 /* 
