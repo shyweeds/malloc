@@ -7,3 +7,12 @@
 /malloclab-handout/mdriver
 /malloclab-handout/mdriver.o
 /malloclab-handout/compile_commands.json
+/compile_commands.json
+/clock.o
+/fcyc.o
+/fsecs.o
+/ftimer.o
+/mdriver
+/mdriver.o
+/memlib.o
+/mm.o
