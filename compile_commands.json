@@ -1,0 +1,107 @@
+[
+  {
+    "file": "mdriver.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-O2",
+      "-m32",
+      "-c",
+      "-o",
+      "mdriver.o",
+      "mdriver.c"
+    ],
+    "directory": "/home/shyweeds/github_projects/malloc",
+    "output": "mdriver.o"
+  },
+  {
+    "file": "mm.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-O2",
+      "-m32",
+      "-c",
+      "-o",
+      "mm.o",
+      "mm.c"
+    ],
+    "directory": "/home/shyweeds/github_projects/malloc",
+    "output": "mm.o"
+  },
+  {
+    "file": "memlib.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-O2",
+      "-m32",
+      "-c",
+      "-o",
+      "memlib.o",
+      "memlib.c"
+    ],
+    "directory": "/home/shyweeds/github_projects/malloc",
+    "output": "memlib.o"
+  },
+  {
+    "file": "fsecs.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-O2",
+      "-m32",
+      "-c",
+      "-o",
+      "fsecs.o",
+      "fsecs.c"
+    ],
+    "directory": "/home/shyweeds/github_projects/malloc",
+    "output": "fsecs.o"
+  },
+  {
+    "file": "fcyc.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-O2",
+      "-m32",
+      "-c",
+      "-o",
+      "fcyc.o",
+      "fcyc.c"
+    ],
+    "directory": "/home/shyweeds/github_projects/malloc",
+    "output": "fcyc.o"
+  },
+  {
+    "file": "clock.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-O2",
+      "-m32",
+      "-c",
+      "-o",
+      "clock.o",
+      "clock.c"
+    ],
+    "directory": "/home/shyweeds/github_projects/malloc",
+    "output": "clock.o"
+  },
+  {
+    "file": "ftimer.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-O2",
+      "-m32",
+      "-c",
+      "-o",
+      "ftimer.o",
+      "ftimer.c"
+    ],
+    "directory": "/home/shyweeds/github_projects/malloc",
+    "output": "ftimer.o"
+  }
+]

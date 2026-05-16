@@ -35,6 +35,26 @@ team_t team = {
     ""
 };
 
+/***shyweeds' edit***********************/
+/*my own macros*/
+#define WSIZE     4       /*Word and header/footer size (bytes)*/
+#define DSIZE     8       /*Double word size(bytes)*/
+#define CHUNKSIZE (1<<12) /*extend heap by this amout (bytes)*/
+
+#define MAX(x,y) ((x) > (y) ? (x) : (y))
+
+/*Pack a size and allocated bit into a word(for heap's boundary word)*/
+#define PACK(size, alloc)   ((size) | (alloc))
+
+/*Read and write a word at address p*/
+#define GET(p)              (*(unsigned int *)(p))
+#define PUT(p, val)         (*(unsigned int *)(p) = (val))
+
+/*Read the size and allocated fields from address p*/
+#define GET_SIZE(p)         (GET(p) & ~0x07)
+#define GET_ALLOC(p)        (GET(p) &  0x01)
+/***shyweeds' edit***********************/
+
 /* single word (4) or double word (8) alignment */
 #define ALIGNMENT 8
 
