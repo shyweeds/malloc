@@ -77,7 +77,7 @@ team_t team = {
  * mm_init - initialize the malloc package.
  */
 static void *extend_heap(size_t words);
-char * heap_listp;
+static char * heap_listp;
 int mm_init(void)
 {
   /*create the initial empty heap*/
