@@ -60,8 +60,8 @@ team_t team = {
 #define FTRP(bp)            ((char *)(bp) + GET_SIZE(HDRP(bp)) - DSIZE)
 
 /*Given block ptr bp, compute address of next and previous blocks*/
-#define NEXT_BLKP(bp)       ((char *)(bp) + GETSIZE(((char *)(bp) - WSIZE)))
-#define PREV_BLKP(bp)       ((char *)(bp) - GETSIZE(((char *)(bp) - DSIZE)))
+#define NEXT_BLKP(bp)       ((char *)(bp) + GET_SIZE(((char *)(bp) - WSIZE)))
+#define PREV_BLKP(bp)       ((char *)(bp) - GET_SIZE(((char *)(bp) - DSIZE)))
 /***shyweeds' edit***********************/
 
 /* single word (4) or double word (8) alignment */
@@ -95,7 +95,25 @@ int mm_init(void)
   return 0;
 }
 /* extend_heap: extend the given heap*/
+static void *coalesce(char *bp);
 static void *extend_heap(size_t words){
+  char *bp;
+  size_t size;
+
+  /*Allocate an even number(8-byte alignment) of words to maintain alignment*/
+  size = (words % 2) ? (words + 1) * WSIZE : words * WSIZE;
+  if((long)(bp = mem_sbrk(size)) == -1)
+    return NULL;
+
+  /*initialize free block header/footer and the eilogue header*/
+  PUT(HDRP(bp), PACK(size, 0)); /*free block header*/
+  PUT(FTRP(bp), PACK(size, 0)); /*free block footer*/
+  PUT(HDRP(NEXT_BLKP(bp)), PACK(0, 1));/*new epilogue header*/
+
+  /*Coalesce if previous block was free*/
+  return coalesce(bp);
+}
+static void *coalesce(char *bp){
   return NULL;
 }
 
