@@ -1,5 +1,8 @@
 ![stars](https://img.shields.io/github/stars/shyweeds/malloc?style=social)
 ![CI](https://github.com/shyweeds/malloc/actions/workflows/ci.yml/badge.svg)
+
+# TODO
+[ ]heap checker:print memories and check alignment......
 #####################################################################
 # CS:APP Malloc Lab
 # Handout files for students
