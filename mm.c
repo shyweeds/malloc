@@ -113,7 +113,11 @@ static void *extend_heap(size_t words){
   /*Coalesce if previous block was free*/
   return coalesce(bp);
 }
+/*coalesce the free blocks*/
 static void *coalesce(char *bp){
+  size_t prev_alloc = GET_ALLOC(FTRP(PREV_BLKP(bp)));
+  size_t next_alloc = GET_ALLOC(HDRP(NEXT_BLKP(bp)));
+  size_t size = GET_SIZE(HDRP(bp));
   return NULL;
 }
 
