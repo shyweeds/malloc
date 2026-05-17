@@ -41,6 +41,7 @@ team_t team = {
 #define WSIZE     4       /*Word and header/footer size (bytes)*/
 #define DSIZE     8       /*Double word size(bytes)*/
 #define CHUNKSIZE (1<<12) /*extend heap by this amout (bytes)*/
+#define MIN_BLOCK_SIZE ((WSIZE)*2 + DSIZE)
 
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 
@@ -175,7 +176,7 @@ void *mm_malloc(size_t size)
 
   /*adjust block size to include overhead and alignment reqs*/
   if(size <= DSIZE)
-    asize = 2*DSIZE;
+    asize = MIN_BLOCK_SIZE;
   else
     asize = DSIZE * ((size + (DSIZE) + (DSIZE - 1)) / DSIZE);/*向上取整技巧*/
 
@@ -204,7 +205,21 @@ static void *find_fit(size_t asize)
 }
 static void place(void *bp, size_t asize)
 {
-  return;
+  size_t left_size = GET_SIZE(bp) - asize;
+  if(left_size <= MIN_BLOCK_SIZE) //剩余空间小于最小块大小 
+  { 
+    PUT(HDRP(bp), PACK(asize, 1));
+    PUT(FTRP(bp), PACK(asize, 1));
+  }
+  else
+  {  
+    PUT(HDRP(bp), PACK(asize, 1));
+    PUT(FTRP(bp), PACK(asize, 1));
+
+    //把剩下的块单独变成一个空闲块
+    PUT(HDRP(NEXT_BLKP(bp)), PACK(left_size, 0));
+    PUT(FTRP(NEXT_BLKP(bp)), PACK(left_size, 0));
+  }
 }
 
 /*
