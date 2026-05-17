@@ -151,8 +151,11 @@ static void *coalesce(char *bp){
  * mm_malloc - Allocate a block by incrementing the brk pointer.
  *     Always allocate a block whose size is a multiple of the alignment.
  */
+static void *find_fit(size_t asize);
+static void place(void *bp, size_t asize);
 void *mm_malloc(size_t size)
 {
+/*
     int newsize = ALIGN(size + SIZE_T_SIZE);
     void *p = mem_sbrk(newsize);
     if (p == (void *)-1)
@@ -161,6 +164,42 @@ void *mm_malloc(size_t size)
         *(size_t *)p = size;
         return (void *)((char *)p + SIZE_T_SIZE);
     }
+*/
+  size_t asize; /*adjust block size*/
+  size_t extendsize; /*amount to extend if not fit*/
+  char* bp;
+
+  /*ignore spurious requests*/
+  if(size == 0)
+    return NULL;
+
+  /*adjust block size to include overhead and alignment reqs*/
+  if(size <= DSIZE)
+    asize = 2*DSIZE;
+  else
+    asize = DSIZE * ((size + (DSIZE) + (DSIZE - 1)) / DSIZE);/*向上取整技巧*/
+
+  /*Search the free list for a fit*/
+  if((bp = find_fit(asize)) != NULL)
+  {
+    place(bp, asize);
+    return bp;
+  }
+
+  /*No fit find. Get more memory and place the block*/
+  extendsize = MAX(asize, CHUNKSIZE);
+  if ((bp = extend_heap(extendsize/WSIZE)) == NULL)
+    return NULL;
+  place(bp, asize);
+  return bp;
+}
+static void *find_fit(size_t asize)
+{
+  return NULL;
+}
+static void place(void *bp, size_t asize)
+{
+  return;
 }
 
 /*
