@@ -77,7 +77,7 @@ team_t team = {
  * mm_init - initialize the malloc package.
  */
 static void *extend_heap(size_t words);
-static char * heap_listp;
+static char *heap_listp;
 int mm_init(void)
 {
   /*create the initial empty heap*/
@@ -195,6 +195,11 @@ void *mm_malloc(size_t size)
 }
 static void *find_fit(size_t asize)
 {
+  char *bp = heap_listp;
+  if(asize >= GET_SIZE(HDRP(bp)))
+    return bp;
+  else
+    bp = NEXT_BLKP(bp);
   return NULL;
 }
 static void place(void *bp, size_t asize)
