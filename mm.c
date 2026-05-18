@@ -74,11 +74,76 @@ team_t team = {
 
 #define SIZE_T_SIZE (ALIGN(sizeof(size_t)))
 
+static char *heap_listp;
+
+/*
+ * mm_checkheap() - check the heap's consistency
+ */
+static void mm_checkheap(int lineno)
+{
+  char *bp = heap_listp;
+  printf("heapCheck at line %d\n",lineno);
+
+  /*1.check alignment padding*/
+  assert(GET(bp - (2*WSIZE)) == 0);
+
+  /*2.check prologue blocks*/
+  assert(GET(bp - (1*WSIZE)) == PACK(DSIZE, 1));
+  assert(GET(bp) == PACK(DSIZE, 1));
+
+  /*3.check heap blocks*/
+  for(bp = heap_listp; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp))
+  {
+    size_t size = GET_SIZE(HDRP(bp));
+    int alloc = GET_ALLOC(HDRP(bp));
+
+    /*alignment check*/
+    if((size_t)bp % ALIGNMENT != 0) {
+      printf("ERROR: block not aligned at %p\n", bp);
+      exit(1);
+    }
+
+    /*size sanity check*/
+    if(size < DSIZE)
+    {
+      printf("ERROR: invalid block size at %p\n", bp);
+      exit(1);
+    }
+
+    /*header/footer consistency*/
+    if(GET(HDRP(bp)) != GET(FTRP(bp)))
+    {
+      printf("ERROR: header/footer mismatch at %p\n", bp);
+      exit(1);
+    }
+
+    /*no adjacent free blocks (coalescing check)*/
+    if(!alloc){
+      char *next = NEXT_BLKP(bp);
+      if(!GET_ALLOC(HDRP(next)) && GET_SIZE(HDRP(next)) > 0)
+      {
+        printf("ERROR: adjacent free blocks at %p\n", bp);
+        exit(1);
+      }
+    }
+  }
+
+  /*
+   * 3.check epilogue block
+   */
+  if(GET_SIZE(HDRP(bp)) != 0 || !GET_ALLOC(HDRP(bp)))
+  {
+    printf("ERROR: bad epilogue block\n");
+    exit(1);
+  }
+
+  printf("Heap OK!\n");
+}
+
 /* 
  * mm_init - initialize the malloc package.
  */
 static void *extend_heap(size_t words);
-static char *heap_listp;
 int mm_init(void)
 {
   /*create the initial empty heap*/
@@ -93,6 +158,9 @@ int mm_init(void)
   /*Extend the empty heap with a free block of CHUNKSIZE bytes*/
   if(extend_heap(CHUNKSIZE/WSIZE) == NULL)
     return -1;
+
+  /*check my heap here*/
+  mm_checkheap(__LINE__);
   return 0;
 }
 /* extend_heap: extend the given heap*/
@@ -196,12 +264,12 @@ void *mm_malloc(size_t size)
 }
 static void *find_fit(size_t asize)
 {
-  char *bp = heap_listp;
+  char *bp;
+  for(bp = heap_listp; asize < GET_SIZE(HDRP(bp)); bp = NEXT_BLKP(bp));
   if(asize >= GET_SIZE(HDRP(bp)))
     return bp;
   else
-    bp = NEXT_BLKP(bp);
-  return NULL;
+    return NULL;
 }
 static void place(void *bp, size_t asize)
 {
@@ -254,69 +322,7 @@ void *mm_realloc(void *ptr, size_t size)
     return newptr;
 }
 
-/*
- * mm_checkheap() - check the heap's consistency
- */
-static void mm_checkheap(int lineno)
-{
-  char *bp = heap_listp;
-  printf("heapCheck at line %d\n",lineno);
 
-  /*1.check alignment padding*/
-  assert(GET(bp - (2*WSIZE)) == 0);
-
-  /*2.check prologue blocks*/
-  assert(GET(bp - (1*WSIZE)) == PACK(DSIZE, 1));
-  assert(GET(bp) == PACK(DSIZE, 1));
-
-  /*3.check heap blocks*/
-  for(bp = heap_listp; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp))
-  {
-    size_t size = GET_SIZE(HDRP(bp));
-    int alloc = GET_ALLOC(HDRP(bp));
-
-    /*alignment check*/
-    if((size_t)bp % ALIGNMENT != 0) {
-      printf("ERROR: block not aligned at %p\n", bp);
-      exit(1);
-    }
-
-    /*size sanity check*/
-    if(size < DSIZE)
-    {
-      printf("ERROR: invalid block size at %p\n", bp);
-      exit(1);
-    }
-
-    /*header/footer consistency*/
-    if(GET(HDRP(bp)) != GET(FTRP(bp)))
-    {
-      printf("ERROR: header/footer mismatch at %p\n", bp);
-      exit(1);
-    }
-
-    /*no adjacent free blocks (coalescing check)*/
-    if(!alloc){
-      char *next = NEXT_BLKP(bp);
-      if(!GET_ALLOC(HDRP(next)) && GET_SIZE(HDRP(next)) > 0)
-      {
-        printf("ERROR: adjacent free blocks at %p\n", bp);
-        exit(1);
-      }
-    }
-  }
-
-  /*
-   * 3.check epilogue block
-   */
-  if(GET_SIZE(HDRP(bp)) != 0 || !GET_ALLOC(HDRP(bp)))
-  {
-    printf("ERROR: bad epilogue block\n");
-    exit(1);
-  }
-
-  printf("Heap OK!\n");
-}
 
 
 
