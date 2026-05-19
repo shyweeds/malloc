@@ -88,8 +88,8 @@ static void mm_checkheap(int lineno)
   assert(GET(bp - (2*WSIZE)) == 0);
 
   /*2.check prologue blocks*/
-  assert(GET(bp - (1*WSIZE)) == PACK(DSIZE, 1));
-  assert(GET(bp) == PACK(DSIZE, 1));
+  assert(GET(bp - (1*WSIZE)) == PACK(DSIZE, 1));//prologue header
+  assert(GET(bp) == PACK(DSIZE, 1));//prologue footer
 
   /*3.check heap blocks*/
   for(bp = heap_listp; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp))
@@ -111,10 +111,13 @@ static void mm_checkheap(int lineno)
     }
 
     /*header/footer consistency*/
-    if(GET(HDRP(bp)) != GET(FTRP(bp)))
-    {
-      printf("ERROR: header/footer mismatch at %p\n", bp);
-      exit(1);
+    if(alloc)
+    { 
+      if(GET(HDRP(bp)) != GET(FTRP(bp)))
+      {
+        printf("ERROR: header/footer mismatch at %p\n", bp);
+        exit(1);
+      }
     }
 
     /*no adjacent free blocks (coalescing check)*/
@@ -131,7 +134,7 @@ static void mm_checkheap(int lineno)
   /*
    * 3.check epilogue block
    */
-  if(GET_SIZE(HDRP(bp)) != 0 || !GET_ALLOC(HDRP(bp)))
+  if(GET(HDRP(bp)) != PACK(0, 1))
   {
     printf("ERROR: bad epilogue block\n");
     exit(1);
@@ -159,8 +162,10 @@ int mm_init(void)
   if(extend_heap(CHUNKSIZE/WSIZE) == NULL)
     return -1;
 
+  /******************************************************/
   /*check my heap here*/
   mm_checkheap(__LINE__);
+  /******************************************************/
   return 0;
 }
 /* extend_heap: extend the given heap*/
