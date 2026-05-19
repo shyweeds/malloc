@@ -76,6 +76,31 @@ team_t team = {
 
 static char *heap_listp;
 
+static void dump_heap(void *heap_listp)
+{
+  void *bp = heap_listp;
+
+  printf("\n=====heap_dump=====\n");
+  while(1)
+  {
+    size_t size = GET_SIZE(HDRP(bp));
+    int alloc = GET_ALLOC(HDRP(bp));
+
+    printf("block %p | header=%p | footer=%p | size(in header) = %zu | alloc=%d\n",
+        bp, HDRP(bp), FTRP(bp), size, alloc);
+
+    if(size==0) // wow! I find the epilogue block
+    {
+      break;
+    }
+    else
+    {
+      bp = NEXT_BLKP(bp); // uha,i'll move to the next one!
+    }
+  }
+  printf("===================\n");
+}
+
 /*
  * mm_checkheap() - check the heap's consistency
  */
@@ -176,6 +201,7 @@ int mm_init(void)
 
   /******************************************************/
   mm_checkheap(__LINE__);
+  dump_heap(heap_listp);
   /******************************************************/
   return 0;
 }
