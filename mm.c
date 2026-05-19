@@ -85,11 +85,23 @@ static void mm_checkheap(int lineno)
   printf("heapCheck at line %d\n",lineno);
 
   /*1.check alignment padding*/
-  assert(GET(bp - (2*WSIZE)) == 0);
+  if(GET(bp - (2*WSIZE)) != 0)
+  {
+    printf("alignment padding error\n");
+    exit(1);
+  }
 
   /*2.check prologue blocks*/
-  assert(GET(bp - (1*WSIZE)) == PACK(DSIZE, 1));//prologue header
-  assert(GET(bp) == PACK(DSIZE, 1));//prologue footer
+  if(GET(bp - (1*WSIZE)) != PACK(DSIZE, 1))//prologue header
+  {
+    printf("prologue blocks header error\n");
+    exit(1);
+  }                                        
+  if(GET(bp) != PACK(DSIZE, 1))//prologue footer
+  {
+    printf("prologue blocks footer error\n");
+    exit(1);
+  }
 
   /*3.check heap blocks*/
   for(bp = heap_listp; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp))
@@ -163,7 +175,6 @@ int mm_init(void)
     return -1;
 
   /******************************************************/
-  /*check my heap here*/
   mm_checkheap(__LINE__);
   /******************************************************/
   return 0;
@@ -257,6 +268,9 @@ void *mm_malloc(size_t size)
   if((bp = find_fit(asize)) != NULL)
   {
     place(bp, asize);
+  /******************************************************/
+  mm_checkheap(__LINE__);
+  /******************************************************/
     return bp;
   }
 
@@ -264,8 +278,14 @@ void *mm_malloc(size_t size)
   extendsize = MAX(asize, CHUNKSIZE);
   if ((bp = extend_heap(extendsize/WSIZE)) == NULL)
     return NULL;
-  place(bp, asize);
-  return bp;
+  else
+  {
+    place(bp, asize);
+  /******************************************************/
+  mm_checkheap(__LINE__);
+  /******************************************************/
+    return bp;
+  }
 }
 static void *find_fit(size_t asize)
 {
