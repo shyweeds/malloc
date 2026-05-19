@@ -82,7 +82,7 @@ static char *heap_listp;
 static void mm_checkheap(int lineno)
 {
   char *bp = heap_listp;
-  printf("heapCheck at line %d\n",lineno);
+  printf("\nheapCheck at line %d\n",lineno);
 
   /*1.check alignment padding*/
   if(GET(bp - (2*WSIZE)) != 0)
@@ -267,6 +267,9 @@ void *mm_malloc(size_t size)
   /*Search the free list for a fit*/
   if((bp = find_fit(asize)) != NULL)
   {
+  /******************************************************/
+  mm_checkheap(__LINE__);
+  /******************************************************/
     place(bp, asize);
   /******************************************************/
   mm_checkheap(__LINE__);
@@ -280,6 +283,9 @@ void *mm_malloc(size_t size)
     return NULL;
   else
   {
+  /******************************************************/
+  mm_checkheap(__LINE__);
+  /******************************************************/
     place(bp, asize);
   /******************************************************/
   mm_checkheap(__LINE__);
@@ -290,8 +296,8 @@ void *mm_malloc(size_t size)
 static void *find_fit(size_t asize)
 {
   char *bp;
-  for(bp = heap_listp; asize < GET_SIZE(HDRP(bp)); bp = NEXT_BLKP(bp));
-  if(asize >= GET_SIZE(HDRP(bp)))
+  for(bp = heap_listp; GET_SIZE(HDRP(bp)) > asize; bp = NEXT_BLKP(bp));
+  if(GET_SIZE(HDRP(bp)) > asize)
     return bp;
   else
     return NULL;
@@ -299,20 +305,23 @@ static void *find_fit(size_t asize)
 static void place(void *bp, size_t asize)
 {
   size_t left_size = GET_SIZE(bp) - asize;
-  if(left_size <= MIN_BLOCK_SIZE) //剩余空间小于最小块大小 
-  { 
-    PUT(HDRP(bp), PACK(asize, 1));
-    PUT(FTRP(bp), PACK(asize, 1));
-  }
-  else
-  {  
-    PUT(HDRP(bp), PACK(asize, 1));
-    PUT(FTRP(bp), PACK(asize, 1));
 
-    //把剩下的块单独变成一个空闲块
-    PUT(HDRP(NEXT_BLKP(bp)), PACK(left_size, 0));
-    PUT(FTRP(NEXT_BLKP(bp)), PACK(left_size, 0));
-  }
+  PUT(HDRP(bp), PACK(asize, 1));
+  PUT(FTRP(bp), PACK(asize, 1));
+//   if(left_size < MIN_BLOCK_SIZE) //剩余空间小于最小块大小 
+//   { 
+//     PUT(HDRP(bp), PACK(asize, 1));
+//     PUT(FTRP(bp), PACK(asize, 1));
+//   }
+//   else
+//   {  
+//     PUT(HDRP(bp), PACK(asize, 1));
+//     PUT(FTRP(bp), PACK(asize, 1));
+// 
+//     //把剩下的块单独变成一个空闲块
+//     PUT(HDRP(NEXT_BLKP(bp)), PACK(left_size, 0));
+//     PUT(FTRP(NEXT_BLKP(bp)), PACK(left_size, 0));
+//   }
 }
 
 /*
