@@ -299,7 +299,7 @@ void *mm_malloc(size_t size)
     asize = DSIZE * ((size + (DSIZE) + (DSIZE - 1)) / DSIZE);/*向上取整技巧*/
 
   /*Search the free list for a fit*/
-  if((bp = find_fit(asize)))
+  if((bp = find_fit(asize)) != NULL)
   {
   /******************************************************/
   dump_heap(heap_listp);
