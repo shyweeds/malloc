@@ -18,7 +18,7 @@ jobs:
         run: make
 
       - name: Run integration tests
-        run: ../../test_ci.sh
+        run: ./test_ci.sh
 
 #      - name: Run with ASan
 #        run: |
