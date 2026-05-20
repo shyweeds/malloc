@@ -208,8 +208,8 @@ int mm_init(void)
     return -1;
 
   /******************************************************/
-  mm_checkheap(__LINE__);
-  dump_heap(heap_listp);
+//  mm_checkheap(__LINE__);
+//  dump_heap(heap_listp);
   /******************************************************/
   return 0;
 }
@@ -302,14 +302,14 @@ void *mm_malloc(size_t size)
   if((bp = find_fit(asize)) != NULL)
   {
   /******************************************************/
-  dump_heap(heap_listp);
-  mm_checkheap(__LINE__);
+//  dump_heap(heap_listp);
+//  mm_checkheap(__LINE__);
   printf("line:%d;bp=%p\n", __LINE__, bp);
   /******************************************************/
     place(bp, asize);
   /******************************************************/
-  dump_heap(heap_listp);
-  mm_checkheap(__LINE__);
+//  dump_heap(heap_listp);
+//  mm_checkheap(__LINE__);
   /******************************************************/
     return bp;
   }
@@ -321,13 +321,13 @@ void *mm_malloc(size_t size)
   else
   {
   /******************************************************/
-  dump_heap(heap_listp);
-  mm_checkheap(__LINE__);
+//  dump_heap(heap_listp);
+//  mm_checkheap(__LINE__);
   /******************************************************/
     place(bp, asize);
   /******************************************************/
-  dump_heap(heap_listp);
-  mm_checkheap(__LINE__);
+//  dump_heap(heap_listp);
+//  mm_checkheap(__LINE__);
   /******************************************************/
     return bp;
   }
