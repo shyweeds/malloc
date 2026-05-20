@@ -131,8 +131,8 @@ static void mm_checkheap(int lineno)
   if(GET(bp) != PACK(DSIZE, 1))//prologue footer
   {
     printf("prologue blocks footer error\n");
-    printf("GET(bp)=0x%X\n",GET(bp));
-    printf("PACK(DSIZE, 1)=0x%X\n",PACK(DSIZE, 1));
+//    printf("GET(bp)=0x%X\n",GET(bp));
+//    printf("PACK(DSIZE, 1)=0x%X\n",PACK(DSIZE, 1));
     exit(1);
   }
 
@@ -349,21 +349,12 @@ static void place(void *bp, size_t asize)
 
   if(left_size >= MIN_BLOCK_SIZE) //剩余空间大于等于最小块大小 
   { 
-    printf("!!!!!!!====unsafeHere====\n\n");
-  mm_checkheap(__LINE__);
-dump_heap(heap_listp);
-printf("bp=%p\n",bp);
-printf("left_size=%d\n",left_size);
     PUT(HDRP(bp), PACK(asize, 1));
-dump_heap(heap_listp);
     PUT(FTRP(bp), PACK(asize, 1));
 
-dump_heap(heap_listp);
     //把剩下的块单独变成一个空闲块
     PUT(HDRP(NEXT_BLKP(bp)), PACK(left_size, 0));
     PUT(FTRP(NEXT_BLKP(bp)), PACK(left_size, 0));
-  mm_checkheap(__LINE__);
-    printf("!!!!!!====unsafeHere====\n\n");
   }
   else //不拆分,产生内部碎片
   {  
