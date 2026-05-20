@@ -304,6 +304,7 @@ void *mm_malloc(size_t size)
   /******************************************************/
   dump_heap(heap_listp);
   mm_checkheap(__LINE__);
+  printf("line:%d;bp=%p\n", __LINE__, bp);
   /******************************************************/
     place(bp, asize);
   /******************************************************/
@@ -334,14 +335,24 @@ void *mm_malloc(size_t size)
 static void *find_fit(size_t asize)
 {
   char *bp = heap_listp;
-  while(GET_SIZE(HDRP(bp)) < asize && GET_SIZE(HDRP(bp)) != 0)
-  {
-    bp = NEXT_BLKP(bp);
+  while(1){
+    int alloc = GET_ALLOC(HDRP(bp));
+    printf("!!!!!!!=======line:%d;heap_listp=%p;bp=%p;alloc=%d\n", __LINE__, heap_listp, bp, alloc);
+    printf("!!!!!!!=======line:%d;GET_SIZE(HDRP(bp))=%d\n", __LINE__, GET_SIZE(HDRP(bp)));
+sleep(1);
+    
+    if(GET_SIZE(HDRP(bp)) == 0){
+      return NULL;
+    }
+    else if(alloc){
+      bp = NEXT_BLKP(bp);
+      alloc = GET_ALLOC(HDRP(bp));
+    }
+    else if(GET_SIZE(HDRP(bp)) >= asize){
+      return bp;
+    }
+    printf("1\n");
   }
-  if(GET_SIZE(HDRP(bp)) == 0)
-    return NULL;
-  else
-    return bp;
 }
 static void place(void *bp, size_t asize)
 {
