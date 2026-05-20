@@ -83,20 +83,26 @@ static void dump_heap(void *heap_listp)
   printf("\n=====heap_dump=====\n");
   while(1)
   {
-    size_t size = GET_SIZE(HDRP(bp));
-    int alloc = GET_ALLOC(HDRP(bp));
-
-    printf("block %p | header=%p | footer=%p | size(in header) = %zu | alloc=%d\n",
-        bp, HDRP(bp), FTRP(bp), size, alloc);
-
-    if(size==0) // wow! I find the epilogue block
+    size_t size_header = GET_SIZE(HDRP(bp));
+    size_t size_footer = GET_SIZE(FTRP(bp));
+    int alloc_header = GET_ALLOC(HDRP(bp));
+    int alloc_footer = GET_ALLOC(FTRP(bp));
+    void *footer = FTRP(bp); 
+  
+    if(size_header == 0) // if it is the epilogue block
     {
+      footer = NULL;
+      size_footer = -1;
+      alloc_footer = -1;
+    }
+
+    printf("block %p | header=%p | footer=%p | size(in header) = %zu | size(in footer) = %zu | alloc(header)=%d | alloc(footer)=%d\n",
+        bp, HDRP(bp), footer, size_header, size_footer, alloc_header, alloc_footer);
+
+    if(size_header == 0) // wow! I find the epilogue block
       break;
-    }
     else
-    {
       bp = NEXT_BLKP(bp); // uha,i'll move to the next one!
-    }
   }
   printf("===================\n");
 }
@@ -125,6 +131,8 @@ static void mm_checkheap(int lineno)
   if(GET(bp) != PACK(DSIZE, 1))//prologue footer
   {
     printf("prologue blocks footer error\n");
+    printf("GET(bp)=0x%X\n",GET(bp));
+    printf("PACK(DSIZE, 1)=0x%X\n",PACK(DSIZE, 1));
     exit(1);
   }
 
@@ -341,12 +349,20 @@ static void place(void *bp, size_t asize)
 
   if(left_size >= MIN_BLOCK_SIZE) //剩余空间大于等于最小块大小 
   { 
+    printf("!!!!!!!====unsafeHere====\n\n");
+  mm_checkheap(__LINE__);
+dump_heap(heap_listp);
+printf("bp=%p\n",bp);
+printf("asize=%d\n",asize);
     PUT(HDRP(bp), PACK(asize, 1));
     PUT(FTRP(bp) - left_size, PACK(asize, 1));
 
     //把剩下的块单独变成一个空闲块
     PUT(HDRP(NEXT_BLKP(bp)), PACK(left_size, 0));
     PUT(FTRP(NEXT_BLKP(bp)), PACK(left_size, 0));
+dump_heap(heap_listp);
+  mm_checkheap(__LINE__);
+    printf("!!!!!!====unsafeHere====\n\n");
   }
   else //不拆分,产生内部碎片
   {  
