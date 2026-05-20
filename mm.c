@@ -337,21 +337,20 @@ static void *find_fit(size_t asize)
   char *bp = heap_listp;
   while(1){
     int alloc = GET_ALLOC(HDRP(bp));
-    printf("!!!!!!!=======line:%d;heap_listp=%p;bp=%p;alloc=%d\n", __LINE__, heap_listp, bp, alloc);
-    printf("!!!!!!!=======line:%d;GET_SIZE(HDRP(bp))=%d\n", __LINE__, GET_SIZE(HDRP(bp)));
-sleep(1);
+   // printf("!!!!!!!=======line:%d;heap_listp=%p;bp=%p;alloc=%d\n", __LINE__, heap_listp, bp, alloc);
+    //printf("!!!!!!!=======line:%d;GET_SIZE(HDRP(bp))=%d\n", __LINE__, GET_SIZE(HDRP(bp)));
     
     if(GET_SIZE(HDRP(bp)) == 0){
       return NULL;
     }
-    else if(alloc){
+    else if(alloc || GET_SIZE(HDRP(bp)) < asize){
       bp = NEXT_BLKP(bp);
       alloc = GET_ALLOC(HDRP(bp));
     }
     else if(GET_SIZE(HDRP(bp)) >= asize){
       return bp;
     }
-    printf("1\n");
+    //printf("1\n");
   }
 }
 static void place(void *bp, size_t asize)
