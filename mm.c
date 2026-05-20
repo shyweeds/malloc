@@ -83,8 +83,8 @@ static void dump_heap(void *heap_listp)
   printf("\n=====heap_dump=====\n");
   while(1)
   {
-    size_t size_header = GET_SIZE(HDRP(bp));
-    size_t size_footer = GET_SIZE(FTRP(bp));
+    ssize_t size_header = GET_SIZE(HDRP(bp));
+    ssize_t size_footer = GET_SIZE(FTRP(bp));
     int alloc_header = GET_ALLOC(HDRP(bp));
     int alloc_footer = GET_ALLOC(FTRP(bp));
     void *footer = FTRP(bp); 
@@ -96,7 +96,7 @@ static void dump_heap(void *heap_listp)
       alloc_footer = -1;
     }
 
-    printf("block %p | header=%p | footer=%p | size(in header) = %zu | size(in footer) = %zu | alloc(header)=%d | alloc(footer)=%d\n",
+    printf("block %p | header=%p | footer=%p | size(in header) = %zd | size(in footer) = %zd | alloc(header)=%d | alloc(footer)=%d\n",
         bp, HDRP(bp), footer, size_header, size_footer, alloc_header, alloc_footer);
 
     if(size_header == 0) // wow! I find the epilogue block
@@ -353,14 +353,15 @@ static void place(void *bp, size_t asize)
   mm_checkheap(__LINE__);
 dump_heap(heap_listp);
 printf("bp=%p\n",bp);
-printf("asize=%d\n",asize);
+printf("left_size=%d\n",left_size);
     PUT(HDRP(bp), PACK(asize, 1));
-    PUT(FTRP(bp) - left_size, PACK(asize, 1));
+dump_heap(heap_listp);
+    PUT(FTRP(bp), PACK(asize, 1));
 
+dump_heap(heap_listp);
     //把剩下的块单独变成一个空闲块
     PUT(HDRP(NEXT_BLKP(bp)), PACK(left_size, 0));
     PUT(FTRP(NEXT_BLKP(bp)), PACK(left_size, 0));
-dump_heap(heap_listp);
   mm_checkheap(__LINE__);
     printf("!!!!!!====unsafeHere====\n\n");
   }
