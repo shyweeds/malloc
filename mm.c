@@ -295,7 +295,7 @@ void *mm_malloc(size_t size)
   if(size <= DSIZE)
     asize = 2*DSIZE;
   else
-    asize = DSIZE * ((size + (DSIZE) + (DSIZE - 1)) / DSIZE);/*向上取整技巧*/
+    asize = DSIZE * ((size + (DSIZE) + (DSIZE - 1)) / DSIZE);/*向上取整(round up)技巧*/
 
   /*Search the free list for a fit*/
   if((bp = find_fit(asize)) != NULL)
@@ -312,7 +312,6 @@ void *mm_malloc(size_t size)
   /******************************************************/
     return bp;
   }
-
   /*No fit find. Get more memory and place the block*/
   extendsize = MAX(asize, CHUNKSIZE);
   if ((bp = extend_heap(extendsize/WSIZE)) == NULL)
@@ -336,18 +335,18 @@ static void *find_fit(size_t asize)
   char *bp = heap_listp;
   while(1){
     int alloc = GET_ALLOC(HDRP(bp));
-   // printf("!!!!!!!=======line:%d;heap_listp=%p;bp=%p;alloc=%d\n", __LINE__, heap_listp, bp, alloc);
+    // printf("!!!!!!!=======line:%d;heap_listp=%p;bp=%p;alloc=%d\n", __LINE__, heap_listp, bp, alloc);
     //printf("!!!!!!!=======line:%d;GET_SIZE(HDRP(bp))=%d\n", __LINE__, GET_SIZE(HDRP(bp)));
-    
+
     if(GET_SIZE(HDRP(bp)) == 0){
-      return NULL;
+    return NULL;
     }
     else if(alloc || GET_SIZE(HDRP(bp)) < asize){
-      bp = NEXT_BLKP(bp);
-      alloc = GET_ALLOC(HDRP(bp));
+    bp = NEXT_BLKP(bp);
+    alloc = GET_ALLOC(HDRP(bp));
     }
     else if(GET_SIZE(HDRP(bp)) >= asize){
-      return bp;
+    return bp;
     }
     //printf("1\n");
   }
