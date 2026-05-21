@@ -12,14 +12,16 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install deps
-        run: sudo apt update && sudo apt install -y build-essential valgrind curl gcc-multilib g++-multilib libc6-dev-i386
+        run: sudo apt update && sudo apt install -y build-essential curl gcc-multilib g++-multilib libc6-dev-i386
 
       - name: Build
         run: make
 
-      - name: Run integration tests
-        run: ./test_ci.sh
+      - name: Run basic tests(mm_alloc() and mm_free())
+        run: ./basic_test_ci.sh
 
+      - name: Run Full tests(mm_alloc() mm_realloc() and mm_free())
+        run: ./ful_test_ci.sh
 #      - name: Run with ASan
 #        run: |
 #          make clean

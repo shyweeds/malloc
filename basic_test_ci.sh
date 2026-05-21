@@ -30,18 +30,24 @@ tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 
 for rep in "${tests[@]}"; do
-  log "run ./mdriver -V -f $rep"
+  log "run ./mdriver -Vv -f $rep"
   mylog="$tmpdir/${rep}.log"
 
-  if ./mdriver -V -f "$rep" >"$mylog" 2>&1; then
+  if ./mdriver -Vv -f "$rep" >"$mylog" 2>&1; then
+    if grep -q "errors" "$mylog"; then
+      log "FAIL $rep"
+      log "-----$rep log begin-----"
+      cat "$mylog"
+      log "----- $rep log end -----"
+      exit 1
+    fi
     log "PASS $rep"
   else
-    status=$?
-    log "FAIL $rep (exit=$status)"
+    log "FAIL $rep"
     log "-----$rep log begin-----"
     cat "$mylog"
     log "----- $rep log end -----"
-    exit "$status"
+    exit 2
   fi
 done
 
