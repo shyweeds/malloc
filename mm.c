@@ -50,6 +50,13 @@ team_t team = {
 /*Given block ptr bp, compute address of next and previous blocks*/
 #define NEXT_BLKP(bp)       ((char *)(bp) + GET_SIZE(((char *)(bp) - WSIZE)))
 #define PREV_BLKP(bp)       ((char *)(bp) - GET_SIZE(((char *)(bp) - DSIZE)))
+
+/*explicit list(predencessor,successor)*/
+#define PRED_PTR(bp)        ((char *)(bp))
+#define SUCC_PTR(bp)        ((char *)(bp) + WSIZE)
+
+#define PRED(bp)            (*(void **)(PRED_PTR(bp)))
+#define SUCC(bp)            (*(void **)(SUCC_PTR(bp)))
 /***shyweeds' edit***********************/
 
 /* single word (4) or double word (8) alignment */
@@ -58,6 +65,7 @@ team_t team = {
 /* rounds up to the nearest multiple of ALIGNMENT */
 #define ALIGN(size) (((size) + (ALIGNMENT-1)) & ~0x7)
 
+/*the heap_listp(explicit list)*/
 static char *heap_listp;
 
 static void dump_heap(void *heap_listp)
