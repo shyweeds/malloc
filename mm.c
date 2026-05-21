@@ -304,7 +304,7 @@ void *mm_malloc(size_t size)
   /******************************************************/
 //  dump_heap(heap_listp);
 //  mm_checkheap(__LINE__);
-  printf("line:%d;bp=%p\n", __LINE__, bp);
+//  printf("line:%d;bp=%p\n", __LINE__, bp);
   /******************************************************/
     place(bp, asize);
   /******************************************************/
