@@ -41,7 +41,6 @@ team_t team = {
 #define WSIZE     4       /*Word and header/footer size (bytes)*/
 #define DSIZE     8       /*Double word size(bytes)*/
 #define CHUNKSIZE (1<<12) /*extend heap by this amout (bytes)*/
-#define MIN_BLOCK_SIZE ((WSIZE)*2 + DSIZE)
 
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 
@@ -294,7 +293,7 @@ void *mm_malloc(size_t size)
 
   /*adjust block size to include overhead and alignment reqs*/
   if(size <= DSIZE)
-    asize = MIN_BLOCK_SIZE;
+    asize = 2*DSIZE;
   else
     asize = DSIZE * ((size + (DSIZE) + (DSIZE - 1)) / DSIZE);/*向上取整技巧*/
 
@@ -357,7 +356,7 @@ static void place(void *bp, size_t asize)
 {
   size_t left_size = GET_SIZE(HDRP(bp)) - asize;
 
-  if(left_size >= MIN_BLOCK_SIZE) //剩余空间大于等于最小块大小 
+  if(left_size >= DSIZE) //剩余空间大于等于最小块大小 
   { 
     PUT(HDRP(bp), PACK(asize, 1));
     PUT(FTRP(bp), PACK(asize, 1));
