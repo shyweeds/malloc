@@ -70,9 +70,6 @@ team_t team = {
 /* rounds up to the nearest multiple of ALIGNMENT */
 #define ALIGN(size) (((size) + (ALIGNMENT-1)) & ~0x7)
 
-
-#define SIZE_T_SIZE (ALIGN(sizeof(size_t)))
-
 static char *heap_listp;
 
 static void dump_heap(void *heap_listp)
@@ -295,7 +292,7 @@ void *mm_malloc(size_t size)
   if(size <= DSIZE)
     asize = 2*DSIZE;
   else
-    asize = DSIZE * ((size + (DSIZE) + (DSIZE - 1)) / DSIZE);/*向上取整(round up)技巧*/
+    asize = ALIGN(size + (DSIZE));/*向上取整(round up)技巧*/
 
   /*Search the free list for a fit*/
   if((bp = find_fit(asize)) != NULL)
@@ -388,19 +385,37 @@ void mm_free(void *ptr)
  */
 void *mm_realloc(void *ptr, size_t size)
 {
-    void *oldptr = ptr;
-    void *newptr;
-    size_t copySize;
-    
-    newptr = mm_malloc(size);
-    if (newptr == NULL)
-      return NULL;
-    copySize = *(size_t *)((char *)oldptr - SIZE_T_SIZE);
-    if (size < copySize)
-      copySize = size;
-    memcpy(newptr, oldptr, copySize);
-    mm_free(oldptr);
-    return newptr;
+  /************test*************/
+  static int test_tmp=0;
+  test_tmp++;
+  /************test*************/
+  if (ptr == NULL){
+    return mm_malloc(size);
+  }
+  if (size == 0) {
+    mm_free(ptr);
+    return NULL;
+  }
+
+  void *oldptr = ptr;
+  void *newptr;
+  size_t oldsize = GET_SIZE(HDRP(ptr));
+  size_t newsize;
+  if(size <= DSIZE)
+    newsize = 2*DSIZE;
+  else //向上取整小技巧
+    newsize = ALIGN(size + (DSIZE));
+
+  if(oldsize < newsize){
+
+  }
+  /************test*************/
+  printf("\n=====================================\n");
+  printf("line %d in %s():test_tmp=%d\n" ,__LINE__ ,__FUNCTION__, test_tmp);
+  dump_heap(heap_listp);
+  mm_checkheap(__LINE__);
+  /************test*************/
+  return newptr;
 }
 
 
