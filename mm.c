@@ -386,8 +386,8 @@ void mm_free(void *ptr)
 void *mm_realloc(void *ptr, size_t size)
 {
   /************test*************/
-  static int test_tmp=0;
-  test_tmp++;
+//  static int test_tmp=0;
+//  test_tmp++;
   /************test*************/
   if (ptr == NULL){
     return mm_malloc(size);
@@ -398,7 +398,7 @@ void *mm_realloc(void *ptr, size_t size)
   }
 
   void *oldptr = ptr;
-  void *newptr;
+  void *newptr = NULL;
   size_t oldsize = GET_SIZE(HDRP(ptr));
   size_t newsize;
   if(size <= DSIZE)
@@ -406,14 +406,37 @@ void *mm_realloc(void *ptr, size_t size)
   else //向上取整小技巧
     newsize = ALIGN(size + (DSIZE));
 
-  if(oldsize < newsize){
-
+  if(newsize == oldsize){
+    newptr = oldptr;
+    return newptr;
   }
+  else if(newsize < oldsize) {
+    /*剩余太小了,生成内部碎片,不必更新size记录*/
+    if((oldsize - newsize) < (DSIZE*2)){ 
+      newptr = oldptr;
+      return newptr;
+    }
+    else{//剩余足够产生空闲块
+      /*更改隐式链表记录*/
+      PUT(HDRP(oldptr), PACK(newsize, 1));
+      PUT(FTRP(oldptr), PACK(newsize, 1));
+      mm_free(NEXT_BLKP(oldptr));
+
+      newptr = oldptr;
+      return newptr;
+    }
+  }
+  else if(newsize > oldsize){
+     newptr = mm_malloc(newsize);/*分配新内存*/
+     memcpy(newptr, oldptr, oldsize); /*把旧payload拷贝过来*/
+     mm_free(oldptr);/*把原来的内存直接释放*/
+  }
+    
   /************test*************/
-  printf("\n=====================================\n");
-  printf("line %d in %s():test_tmp=%d\n" ,__LINE__ ,__FUNCTION__, test_tmp);
-  dump_heap(heap_listp);
-  mm_checkheap(__LINE__);
+//  printf("\n=====================================\n");
+//  printf("line %d in %s():test_tmp=%d\n" ,__LINE__ ,__FUNCTION__, test_tmp);
+//  dump_heap(heap_listp);
+//  mm_checkheap(__LINE__);
   /************test*************/
   return newptr;
 }
