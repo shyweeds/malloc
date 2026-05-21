@@ -78,7 +78,6 @@ static void insert_to_free_list(void *bp){
   if(free_list_head != NULL) {
     PRED(free_list_head) = bp;
   }
-
   free_list_head = bp;
 }
 
@@ -213,6 +212,7 @@ static void mm_checkheap(int lineno)
 static void *extend_heap(size_t words);
 int mm_init(void)
 {
+  free_list_head = NULL;
   /*create the initial empty heap*/
   if ((p_heap = mem_sbrk(4*WSIZE)) == (void *) -1)
     return -1;  
@@ -249,9 +249,17 @@ static void *extend_heap(size_t words){
   PUT(HDRP(NEXT_BLKP(bp)), PACK(0, 1));/*new epilogue header*/
 
   /*Coalesce if previous block was free*/
-  return coalesce(bp);
+  bp = coalesce(bp);
+  insert_to_free_list(bp); /*update the free list explicitly*/
+
+  return bp;
 }
-/*coalesce the free blocks*/
+/*coalesce the free blocks
+ *attention:
+ *usage---->
+ *bp = coalesce(bp);
+ *insert_to_free_list(bp);
+ * */
 static void *coalesce(char *bp){
   size_t prev_alloc = GET_ALLOC(FTRP(PREV_BLKP(bp)));
   size_t next_alloc = GET_ALLOC(HDRP(NEXT_BLKP(bp)));
@@ -263,12 +271,16 @@ static void *coalesce(char *bp){
   }
   else if(prev_alloc && !next_alloc) /*case 2*/
   {
+    remove_from_free_list(NEXT_BLKP(bp));
+
     size += GET_SIZE(HDRP(NEXT_BLKP(bp)));
     PUT(HDRP(bp), PACK(size, 0));
     PUT(FTRP(bp), PACK(size, 0));
   }
   else if(!prev_alloc && next_alloc) /*case 3*/
   {
+    remove_from_free_list(PREV_BLKP(bp));
+
     size += GET_SIZE(HDRP(PREV_BLKP(bp)));
     PUT(FTRP(bp), PACK(size, 0));
     PUT(HDRP(PREV_BLKP(bp)), PACK(size, 0));
@@ -276,6 +288,9 @@ static void *coalesce(char *bp){
   }
   else if(!prev_alloc && !next_alloc) /*case 4*/
   {
+    remove_from_free_list(NEXT_BLKP(bp));
+    remove_from_free_list(PREV_BLKP(bp));
+
     size += GET_SIZE(HDRP(PREV_BLKP(bp))) +
       GET_SIZE(HDRP(NEXT_BLKP(bp)));
     PUT(HDRP(PREV_BLKP(bp)), PACK(size, 0));
@@ -325,40 +340,38 @@ void *mm_malloc(size_t size)
 }
 static void *find_fit(size_t asize)
 {
-  char *bp = p_heap;
-  while(1){
-    int alloc = GET_ALLOC(HDRP(bp));
-
-    if(GET_SIZE(HDRP(bp)) == 0){
-    return NULL;
+  void *bp = free_list_head;
+  while(bp != NULL){
+    if(GET_SIZE(HDRP(bp)) >= asize) {
+      return bp;
     }
-    else if(alloc || GET_SIZE(HDRP(bp)) < asize){
-    bp = NEXT_BLKP(bp);
-    alloc = GET_ALLOC(HDRP(bp));
-    }
-    else if(GET_SIZE(HDRP(bp)) >= asize){
-    return bp;
-    }
-    //printf("1\n");
+    bp=SUCC(bp);
   }
+  return NULL;
 }
 static void place(void *bp, size_t asize)
 {
-  size_t left_size = GET_SIZE(HDRP(bp)) - asize;
+  size_t csize = GET_SIZE(HDRP(bp));
+  size_t left_size = csize - asize;
 
-  if(left_size >= DSIZE) //剩余空间大于等于最小块大小 
+  remove_from_free_list(bp);/*既然要放置内存,就把这个块先移除*/
+
+  if(left_size >= (DSIZE*3)) //剩余空间大于等于最小块大小 
   { 
     PUT(HDRP(bp), PACK(asize, 1));
     PUT(FTRP(bp), PACK(asize, 1));
 
     //把剩下的块单独变成一个空闲块
+    void *free_bp = NEXT_BLKP(bp);
     PUT(HDRP(NEXT_BLKP(bp)), PACK(left_size, 0));
     PUT(FTRP(NEXT_BLKP(bp)), PACK(left_size, 0));
+
+    insert_to_free_list(free_bp);/*把剩下的块加入我的free_list*/
   }
   else //不拆分,产生内部碎片
   {  
-    PUT(HDRP(bp), PACK(asize, 1));
-    PUT(FTRP(bp), PACK(asize, 1));
+    PUT(HDRP(bp), PACK(csize, 1)); //????????????bug:to csize
+    PUT(FTRP(bp), PACK(csize, 1));
   }
 }
 
@@ -367,11 +380,15 @@ static void place(void *bp, size_t asize)
  */
 void mm_free(void *ptr)
 {
+  if(ptr == NULL) return;
+
   size_t size = GET_SIZE(HDRP(ptr));
+  void *bp;
 
   PUT(HDRP(ptr), PACK(size, 0));
   PUT(FTRP(ptr), PACK(size, 0));
-  coalesce(ptr); /*coalesce the free block*/
+  bp = coalesce(ptr); /*coalesce the free block*/
+  insert_to_free_list(bp); /*update the free list explicitly*/
 }
 
 /*
@@ -387,40 +404,16 @@ void *mm_realloc(void *ptr, size_t size)
     return NULL;
   }
 
-  void *oldptr = ptr;
-  void *newptr = NULL;
-  size_t oldsize = GET_SIZE(HDRP(ptr));
-  size_t newsize;
-  if(size <= DSIZE)
-    newsize = 2*DSIZE;
-  else //向上取整小技巧
-    newsize = ALIGN(size + (DSIZE));
+  void *newptr = mm_malloc(size);
+  if(newptr == NULL){
+    return NULL;
+  }
 
-  if(newsize == oldsize){
-    newptr = oldptr;
-    return newptr;
-  }
-  else if(newsize < oldsize) {
-    /*剩余太小了,生成内部碎片,不必更新size记录*/
-    if((oldsize - newsize) < (DSIZE*2)){ 
-      newptr = oldptr;
-      return newptr;
-    }
-    else{//剩余足够产生空闲块
-      /*更改隐式链表记录*/
-      PUT(HDRP(oldptr), PACK(newsize, 1));
-      PUT(FTRP(oldptr), PACK(newsize, 1));
-      mm_free(NEXT_BLKP(oldptr));
+  size_t oldsize = GET_SIZE(HDRP(ptr)) - DSIZE;
+  size_t copySize = size < oldsize ? size : oldsize;
+  memcpy(newptr, ptr, copySize);
+  mm_free(ptr);
 
-      newptr = oldptr;
-      return newptr;
-    }
-  }
-  else if(newsize > oldsize){
-     newptr = mm_malloc(newsize);/*分配新内存*/
-     memcpy(newptr, oldptr, oldsize); /*把旧payload拷贝过来*/
-     mm_free(oldptr);/*把原来的内存直接释放*/
-  }
   return newptr;
 }
 
