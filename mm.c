@@ -66,7 +66,34 @@ team_t team = {
 #define ALIGN(size) (((size) + (ALIGNMENT-1)) & ~0x7)
 
 /*the heap_listp(explicit list)*/
-static char *heap_listp;
+static void *free_list_head = NULL;
+
+/*pointer point to the head of the heap*/
+static char *p_heap = NULL;
+
+static void insert_to_free_list(void *bp){
+  PRED(bp) = NULL; 
+  SUCC(bp) = free_list_head;
+
+  if(free_list_head != NULL) {
+    PRED(free_list_head) = bp;
+  }
+
+  free_list_head = bp;
+}
+
+static void remove_from_free_list(void *bp){
+  if(PRED(bp) != NULL){
+    SUCC(PRED(bp)) = SUCC(bp);
+  }
+  else{
+    free_list_head = SUCC(bp);
+  }
+
+  if(SUCC(bp) != NULL){
+    PRED(SUCC(bp)) = PRED(bp); 
+  }
+}
 
 static void dump_heap(void *heap_listp)
 {
@@ -104,7 +131,7 @@ static void dump_heap(void *heap_listp)
  */
 static void mm_checkheap(int lineno)
 {
-  char *bp = heap_listp;
+  char *bp = p_heap;
   printf("\nheapCheck at line %d\n",lineno);
 
   /*1.check alignment padding*/
@@ -129,7 +156,7 @@ static void mm_checkheap(int lineno)
   }
 
   /*3.check heap blocks*/
-  for(bp = heap_listp; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp))
+  for(bp = p_heap; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp))
   {
     size_t size = GET_SIZE(HDRP(bp));
     int alloc = GET_ALLOC(HDRP(bp));
@@ -187,13 +214,13 @@ static void *extend_heap(size_t words);
 int mm_init(void)
 {
   /*create the initial empty heap*/
-  if ((heap_listp = mem_sbrk(4*WSIZE)) == (void *) -1)
+  if ((p_heap = mem_sbrk(4*WSIZE)) == (void *) -1)
     return -1;  
-  PUT(heap_listp, 0); /* alignment padding */
-  PUT(heap_listp + (1*WSIZE), PACK(DSIZE, 1)); /*Prologue header*/
-  PUT(heap_listp + (2*WSIZE), PACK(DSIZE, 1)); /*Prologue footer*/
-  PUT(heap_listp + (3*WSIZE), PACK(0, 1)); /*Epilogue footer*/
-  heap_listp += (2*WSIZE);
+  PUT(p_heap, 0); /* alignment padding */
+  PUT(p_heap + (1*WSIZE), PACK(DSIZE, 1)); /*Prologue header*/
+  PUT(p_heap + (2*WSIZE), PACK(DSIZE, 1)); /*Prologue footer*/
+  PUT(p_heap + (3*WSIZE), PACK(0, 1)); /*Epilogue footer*/
+  p_heap += (2*WSIZE);
 
   /*Extend the empty heap with a free block of CHUNKSIZE bytes*/
   if(extend_heap(CHUNKSIZE/WSIZE) == NULL)
@@ -298,7 +325,7 @@ void *mm_malloc(size_t size)
 }
 static void *find_fit(size_t asize)
 {
-  char *bp = heap_listp;
+  char *bp = p_heap;
   while(1){
     int alloc = GET_ALLOC(HDRP(bp));
 
