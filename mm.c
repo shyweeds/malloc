@@ -1,14 +1,3 @@
-/*
- * mm-naive.c - The fastest, least memory-efficient malloc package.
- * 
- * In this naive approach, a block is allocated by simply incrementing
- * the brk pointer.  A block is pure payload. There are no headers or
- * footers.  Blocks are never coalesced or reused. Realloc is
- * implemented directly using mm_malloc and mm_free.
- *
- * NOTE TO STUDENTS: Replace this header comment with your own header
- * comment that gives a high level description of your solution.
- */
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,7 +25,6 @@ team_t team = {
     ""
 };
 
-/***shyweeds' edit***********************/
 /*my own macros*/
 #define WSIZE     4       /*Word and header/footer size (bytes)*/
 #define DSIZE     8       /*Double word size(bytes)*/
@@ -270,16 +258,6 @@ static void *find_fit(size_t asize);
 static void place(void *bp, size_t asize);
 void *mm_malloc(size_t size)
 {
-/*
-    int newsize = ALIGN(size + SIZE_T_SIZE);
-    void *p = mem_sbrk(newsize);
-    if (p == (void *)-1)
-	return NULL;
-    else {
-        *(size_t *)p = size;
-        return (void *)((char *)p + SIZE_T_SIZE);
-    }
-*/
   size_t asize; /*adjust block size*/
   size_t extendsize; /*amount to extend if not fit*/
   char* bp;
@@ -297,16 +275,7 @@ void *mm_malloc(size_t size)
   /*Search the free list for a fit*/
   if((bp = find_fit(asize)) != NULL)
   {
-  /******************************************************/
-//  dump_heap(heap_listp);
-//  mm_checkheap(__LINE__);
-//  printf("line:%d;bp=%p\n", __LINE__, bp);
-  /******************************************************/
     place(bp, asize);
-  /******************************************************/
-//  dump_heap(heap_listp);
-//  mm_checkheap(__LINE__);
-  /******************************************************/
     return bp;
   }
   /*No fit find. Get more memory and place the block*/
@@ -315,15 +284,7 @@ void *mm_malloc(size_t size)
     return NULL;
   else
   {
-  /******************************************************/
-//  dump_heap(heap_listp);
-//  mm_checkheap(__LINE__);
-  /******************************************************/
     place(bp, asize);
-  /******************************************************/
-//  dump_heap(heap_listp);
-//  mm_checkheap(__LINE__);
-  /******************************************************/
     return bp;
   }
 }
@@ -332,8 +293,6 @@ static void *find_fit(size_t asize)
   char *bp = heap_listp;
   while(1){
     int alloc = GET_ALLOC(HDRP(bp));
-    // printf("!!!!!!!=======line:%d;heap_listp=%p;bp=%p;alloc=%d\n", __LINE__, heap_listp, bp, alloc);
-    //printf("!!!!!!!=======line:%d;GET_SIZE(HDRP(bp))=%d\n", __LINE__, GET_SIZE(HDRP(bp)));
 
     if(GET_SIZE(HDRP(bp)) == 0){
     return NULL;
@@ -385,10 +344,6 @@ void mm_free(void *ptr)
  */
 void *mm_realloc(void *ptr, size_t size)
 {
-  /************test*************/
-//  static int test_tmp=0;
-//  test_tmp++;
-  /************test*************/
   if (ptr == NULL){
     return mm_malloc(size);
   }
@@ -431,13 +386,6 @@ void *mm_realloc(void *ptr, size_t size)
      memcpy(newptr, oldptr, oldsize); /*把旧payload拷贝过来*/
      mm_free(oldptr);/*把原来的内存直接释放*/
   }
-    
-  /************test*************/
-//  printf("\n=====================================\n");
-//  printf("line %d in %s():test_tmp=%d\n" ,__LINE__ ,__FUNCTION__, test_tmp);
-//  dump_heap(heap_listp);
-//  mm_checkheap(__LINE__);
-  /************test*************/
   return newptr;
 }
 
